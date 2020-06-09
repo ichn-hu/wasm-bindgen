@@ -316,7 +316,7 @@ fn shared_struct<'a>(s: &'a ast::Struct, intern: &'a Interner) -> Struct<'a> {
 
 fn shared_struct_field<'a>(s: &'a ast::StructField, intern: &'a Interner) -> StructField<'a> {
     StructField {
-        name: match &s.name {
+        name: match &s.js_name {
             syn::Member::Named(ident) => intern.intern(ident),
             syn::Member::Unnamed(index) => intern.intern_str(&index.index.to_string()),
         },

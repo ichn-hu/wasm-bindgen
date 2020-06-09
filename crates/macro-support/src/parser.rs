@@ -380,7 +380,7 @@ impl<'a> ConvertToAst<BindgenAttrs> for &'a mut syn::ItemStruct {
                 syn::Visibility::Public(..) => {}
                 _ => continue,
             }
-            let (name_str, member) = match &field.ident {
+            let (mut name_str, member) = match &field.ident {
                 Some(ident) => (ident.to_string(), syn::Member::Named(ident.clone())),
                 None => (i.to_string(), syn::Member::Unnamed(i.into())),
             };
@@ -392,17 +392,31 @@ impl<'a> ConvertToAst<BindgenAttrs> for &'a mut syn::ItemStruct {
                 continue;
             }
 
+            let (getter_setter_span, field_js_name) = if let Some(js_name) = attrs.js_name() {
+                name_str = js_name.0.to_string();
+                let span = js_name.1;
+                let js_name = match &member {
+                    syn::Member::Named(_) => syn::Member::Named(Ident::new(js_name.0, js_name.1)),
+                    other => other.clone(),
+                };
+
+                (span, js_name)
+            } else {
+                (Span::call_site(), member.clone())
+            };
+
             let comments = extract_doc_comments(&field.attrs);
             let getter = shared::struct_field_get(&js_name, &name_str);
             let setter = shared::struct_field_set(&js_name, &name_str);
 
             fields.push(ast::StructField {
-                name: member,
+                rust_name: member,
+                js_name: field_js_name,
                 struct_name: self.ident.clone(),
                 readonly: attrs.readonly().is_some(),
                 ty: field.ty.clone(),
-                getter: Ident::new(&getter, Span::call_site()),
-                setter: Ident::new(&setter, Span::call_site()),
+                getter: Ident::new(&getter, getter_setter_span),
+                setter: Ident::new(&setter, getter_setter_span),
                 comments,
                 generate_typescript: attrs.skip_typescript().is_none(),
             });

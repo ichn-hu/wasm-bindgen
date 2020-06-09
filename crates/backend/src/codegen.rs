@@ -264,7 +264,7 @@ impl ToTokens for ast::Struct {
 
 impl ToTokens for ast::StructField {
     fn to_tokens(&self, tokens: &mut TokenStream) {
-        let name = &self.name;
+        let name = &self.rust_name;
         let struct_name = &self.struct_name;
         let ty = &self.ty;
         let getter = &self.getter;
