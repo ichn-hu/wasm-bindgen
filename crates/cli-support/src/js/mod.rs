@@ -773,18 +773,32 @@ impl<'a> Context<'a> {
             dst.push_str(&format!(
                 "
                 static __wrap(ptr) {{
-                    const obj = Object.create({}.prototype);
+                    const obj = Object.create({cls}.prototype);
                     obj.ptr = ptr;
                     {}
+
+                    let {{ constructor, ptr: _, toJSON, toString, free, ...proto }} =
+                            Object.getOwnPropertyDescriptors({cls}.prototype);
+                    for (let name in proto) {{
+                      let desc = proto[name];
+                      desc.enumerable = true;
+                      if (obj[name] !== undefined) {{
+                        Object.defineProperty(obj, name, desc);
+                      }}
+                    }}
+                    let ptr_desc = Object.getOwnPropertyDescriptor(obj, 'ptr');
+                    ptr_desc.enumerable = false;
+                    Object.defineProperty(obj, 'ptr', ptr_desc);
+
                     return obj;
                 }}
                 ",
-                name,
                 if self.config.weak_refs {
                     format!("{}Finalization.register(obj, obj.ptr, obj);", name)
                 } else {
                     String::new()
                 },
+                cls = name,
             ));
         }
 
