@@ -274,7 +274,7 @@ impl ToTokens for ast::StructField {
         let assert_copy = respan(assert_copy, ty);
         (quote! {
             #[doc(hidden)]
-            #[allow(clippy::all, deprecated, unsafe_code)]
+            #[allow(clippy::all, deprecated, unsafe_code, bad_style)]
             #[cfg_attr(all(target_arch = "wasm32", not(target_os = "emscripten")), no_mangle)]
             pub unsafe extern "C" fn #getter(js: u32)
                 -> <#ty as wasm_bindgen::convert::IntoWasmAbi>::Abi
@@ -310,7 +310,7 @@ impl ToTokens for ast::StructField {
             #[no_mangle]
             #[doc(hidden)]
             #[cfg(all(target_arch = "wasm32", not(target_os = "emscripten")))]
-            #[allow(clippy::all, deprecated, unsafe_code)]
+            #[allow(clippy::all, deprecated, unsafe_code, bad_style)]
             pub unsafe extern "C" fn #setter(
                 js: u32,
                 val: <#ty as wasm_bindgen::convert::FromWasmAbi>::Abi,
